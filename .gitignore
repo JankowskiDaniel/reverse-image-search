@@ -1,4 +1,6 @@
 data/
+src/notebooks/01-data-extraction.ipynb
+reverse-image-search/src/notebooks/01-data-extraction.ipynb
 .vscode
 venv
 
