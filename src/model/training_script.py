@@ -10,11 +10,12 @@ from tqdm import tqdm
 from transformers import DistilBertTokenizer
 
 from model import ClipBasedModel
-from settings import CAPTIONS_PATH
+from ..settings import (CAPTIONS_PATH,
+                        BATCH_SIZE,
+                        EPOCHS,
+                        DEVICE)
 from utils import EmbeddingDataset, transform
 
-EPOCHS = 4
-BATCH_SIZE = 16
 
 captions_df = pd.read_csv(CAPTIONS_PATH)
 
@@ -40,9 +41,9 @@ validation_loader = DataLoader(
     validation_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0
 )
 
-device = "cuda" if cuda.is_available else "cpu"
 
-model = ClipBasedModel().to(device)
+
+model = ClipBasedModel().to(DEVICE)
 
 params = [
     {"params": model.resnet_encoder.parameters(), "lr": 1e-4},
@@ -77,7 +78,7 @@ def train_model(
         for _, data in enumerate(train_loader, 0):
             model.zero_grad()
             optimizer.zero_grad()
-            data = {key: tensor.to(device) for key, tensor in data.items()}
+            data = {key: tensor.to(DEVICE) for key, tensor in data.items()}
 
             loss = model(data)
             loss.backward()
@@ -90,7 +91,7 @@ def train_model(
         valid_batch_loss = []
         with torch.no_grad():
             for _, data in enumerate(valid_loader, 0):
-                data = {key: tensor.to(device) for key, tensor in data.items()}
+                data = {key: tensor.to(DEVICE) for key, tensor in data.items()}
                 loss = model(data)
                 valid_batch_loss.append(loss.item())
             valid_loss = np.sum(valid_batch_loss) / len(valid_batch_loss)

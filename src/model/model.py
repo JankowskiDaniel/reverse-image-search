@@ -1,8 +1,8 @@
-from src.image_encoder.image_encoder import ResNetEncoder
+from src.image_encoder.image_encoder import ImageEncoder
 from src.text_encoder.text_encoder import TextEncoder
 from torch import nn
 
-from utils import EmbeddingMapper
+from projection_model import ProjectionHead
 
 
 class ClipBasedModel(nn.Module):
@@ -14,10 +14,10 @@ class ClipBasedModel(nn.Module):
         temperature: float = 1.0,
     ):
         super(ClipBasedModel, self).__init__()
-        self.resnet_encoder = ResNetEncoder(resnet)
+        self.resnet_encoder = ImageEncoder(resnet)
         self.bert_encoder = TextEncoder()
-        self.image_mapper = EmbeddingMapper(img_embedding_dim)
-        self.text_mapper = EmbeddingMapper(text_embedding_dim)
+        self.image_mapper = ProjectionHead(img_embedding_dim)
+        self.text_mapper = ProjectionHead(text_embedding_dim)
         self.temperature = temperature
 
     def forward(self, batch):
@@ -39,5 +39,5 @@ class ClipBasedModel(nn.Module):
         )
         texts_loss = nn.CrossEntropyLoss(logits, targets, reduction="none")
         images_loss = nn.CrossEntropyLoss(logits.T, targets.T, reduction="none")
-        loss = (images_loss + texts_loss) / 2.0  # shape: (batch_size)
+        loss = (images_loss + texts_loss) / 2.0
         return loss.mean()
