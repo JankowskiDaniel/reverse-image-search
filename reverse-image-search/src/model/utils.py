@@ -28,7 +28,7 @@ class EmbeddingDataset(Dataset):
         self.images = captions["image"].tolist()
         self.captions = captions["caption"].tolist()
         self.encoded_captions = tokenizer(
-            self.captions, padding=True, truncation=True, max_length=CFG.max_length, return_token_type_ids=True,
+            self.captions, padding=True, truncation=True, max_length=256, return_token_type_ids=True,
         )
         self.transform = transform
 

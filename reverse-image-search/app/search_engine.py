@@ -1,5 +1,5 @@
 import torch
-from architecture import ClipBasedModel
+from architecture import DualEncoder
 import pandas as pd
 from typing import List
 from transformers import DistilBertTokenizer
@@ -35,7 +35,7 @@ class SearchEngine:
 
 
     def __init__model(self, model_path: str) -> None:
-        self.model = ClipBasedModel().to(DEVICE)
+        self.model = DualEncoder().to(DEVICE)
         self.model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
         self.model.eval()
 

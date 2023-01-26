@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  model:
+    ports:
+      - "3020:3020"
+    build:
+      context: ./reverse-image-search
+      dockerfile: Dockerfile
+    restart: always
+
+  frontend:
+    ports:
+      - "8051:8051"
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    restart: always

@@ -5,7 +5,7 @@ from torch import nn
 from projection_model import ProjectionHead
 
 
-class ClipBasedModel(nn.Module):
+class DualEncoder(nn.Module):
     def __init__(
         self,
         resnet: str = "resnet18",
@@ -13,7 +13,7 @@ class ClipBasedModel(nn.Module):
         text_embedding_dim: int = 768,
         temperature: float = 1.0,
     ):
-        super(ClipBasedModel, self).__init__()
+        super(DualEncoder, self).__init__()
         self.resnet_encoder = ImageEncoder(resnet)
         self.bert_encoder = TextEncoder()
         self.image_mapper = ProjectionHead(img_embedding_dim)
@@ -37,7 +37,11 @@ class ClipBasedModel(nn.Module):
         targets = nn.functional.softmax(
             (images_similarity + texts_similarity) / 2 * self.temperature, dim=-1
         )
-        texts_loss = nn.CrossEntropyLoss(logits, targets, reduction="none")
-        images_loss = nn.CrossEntropyLoss(logits.T, targets.T, reduction="none")
+        texts_loss = loss_fn(logits, targets)
+        images_loss = loss_fn(logits.T, targets.T)
         loss = (images_loss + texts_loss) / 2.0
         return loss.mean()
+
+
+def loss_fn(outputs, targets):
+  return nn.CrossEntropyLoss(reduction="none")(outputs, targets)
