@@ -51,14 +51,14 @@ class SearchEngine:
             text_features = self.model.text_encoder(
             input_ids=batch["input_ids"], attention_mask=batch["attention_mask"]
         )
-        text_embeddings = self.model.text_projection(text_features)
+        text_embeddings = self.model.text_mapper(text_features)
     
         image_embeddings_n = F.normalize(self.img_embeddings, p=2, dim=-1)
         text_embeddings_n = F.normalize(text_embeddings, p=2, dim=-1)
         dot_similarity = text_embeddings_n @ image_embeddings_n.T
         
-        _, indices = torch.topk(dot_similarity.squeeze(0), max_results)
-        return indices.numpy().tolist()
+        scores, indices = torch.topk(dot_similarity.squeeze(0), max_results)
+        return scores.detach().numpy().tolist(), indices.detach().numpy().tolist()
     
     def match_image_to_texts(self, image: np.array, max_results: int = 5) -> List[str]:
         image = self.transform(image)
@@ -66,14 +66,14 @@ class SearchEngine:
 
         with torch.no_grad():
             image_features = self.model.image_encoder(image.to(DEVICE))
-            image_embeddings = self.model.image_projection(image_features)
+            image_embeddings = self.model.image_mapper(image_features)
 
         image_embeddings_n = F.normalize(image_embeddings, p=2, dim=-1)
         text_embeddings_n = F.normalize(self.text_embeddings, p=2, dim=-1)
         dot_similarity = image_embeddings_n @ text_embeddings_n.T
         
-        _, indices = torch.topk(dot_similarity.squeeze(0), max_results)
-        return indices.numpy().tolist()
+        scores, indices = torch.topk(dot_similarity.squeeze(0), max_results)
+        return scores.detach().numpy().tolist(), indices.detach().numpy().tolist()
     
     def find_similar_images(self, image: np.array, max_results: int = 9) -> List[int]:
         image = self.transform(image)
@@ -81,11 +81,11 @@ class SearchEngine:
 
         with torch.no_grad():
             image_features = self.model.image_encoder(image.to(DEVICE))
-            single_embedding = self.model.image_projection(image_features)
+            single_embedding = self.model.image_mapper(image_features)
   
         image_embeddings_n = F.normalize(self.img_embeddings, p=2, dim=-1)
         single_embedding_n = F.normalize(single_embedding, p=2, dim=-1)
         dot_similarity = single_embedding_n @ image_embeddings_n.T
 
-        _, indices = torch.topk(dot_similarity.squeeze(0), max_results)
-        return indices.numpy().tolist()
+        scores, indices = torch.topk(dot_similarity.squeeze(0), max_results)
+        return scores.detach().numpy().tolist(), indices.detach().numpy().tolist()

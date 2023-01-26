@@ -17,8 +17,8 @@ class ClipBasedModel(nn.Module):
         super(ClipBasedModel, self).__init__()
         self.image_encoder = ImageEncoder(resnet)
         self.text_encoder = TextEncoder()
-        self.image_projection = ProjectionHead(img_embedding_dim)
-        self.text_projection = ProjectionHead(text_embedding_dim)
+        self.image_mapper = ProjectionHead(img_embedding_dim)
+        self.text_mapper = ProjectionHead(text_embedding_dim)
         self.temperature = temperature
 
     def forward(self, batch):
@@ -28,8 +28,8 @@ class ClipBasedModel(nn.Module):
             input_ids=batch["input_ids"], attention_mask=batch["attention_mask"]
         )
         # Getting Image and Text Embeddings (with same dimension)
-        image_embeddings = self.image_projection(image_features)
-        text_embeddings = self.text_projection(text_features)
+        image_embeddings = self.image_mapper(image_features)
+        text_embeddings = self.text_mapper(text_features)
 
         # Calculating the Loss
         logits = (text_embeddings @ image_embeddings.T) / self.temperature

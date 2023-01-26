@@ -55,6 +55,9 @@ class EmbeddingDataset(Dataset):
             "image": image,
             "caption": caption
         }
+    
+    def __len__(self):
+        return len(self.captions)
 
 
 transform = transforms.Compose(
